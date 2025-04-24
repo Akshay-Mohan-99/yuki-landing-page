@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import { Send, AlertCircle, CheckCircle } from "lucide-react";
+import emailjs from "@emailjs/browser";
+
+// Replace with your actual values from EmailJS
+const SERVICE_ID = "service_69p6p8r";
+const TEMPLATE_ID = "template_6e8v6uw";
+const PUBLIC_KEY = "VRUegGDsSrPwUjKGF";
 
 interface FormData {
   name: string;
@@ -70,17 +76,22 @@ const ContactForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setSubmitStatus("idle");
+
+    const templateParams = {
+      from_name: formData.name,
+      from_email: formData.email,
+      subject: formData.subject,
+      message: formData.message,
+    };
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
       setSubmitStatus("success");
 
-      // Reset form after success
       setFormData({
         name: "",
         email: "",
@@ -88,11 +99,11 @@ const ContactForm: React.FC = () => {
         message: "",
       });
 
-      // Reset success message after 5 seconds
       setTimeout(() => {
         setSubmitStatus("idle");
       }, 5000);
     } catch (error) {
+      console.error("Email sending error:", error);
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);

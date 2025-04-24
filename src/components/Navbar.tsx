@@ -11,7 +11,7 @@ const Navbar: React.FC = () => {
           <div className="flex-shrink-0 flex items-center">
             <img
               src="/assets/yuki_logo.png"
-              alt="Anime World"
+              alt="Yuki"
               className="h-10 w-auto"
             />
           </div>

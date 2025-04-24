@@ -64,11 +64,11 @@ const ScratchCard: React.FC<ScratchCardProps> = ({
         sHeight = img.height;
 
       if (canvasRatio > imageRatio) {
-        // Canvas is wider, crop height
+        // Canvas is wider, crop height — anchor to bottom
         sHeight = img.width / canvasRatio;
-        sy = (img.height - sHeight) / 2;
+        sy = img.height - sHeight; // crop from top
       } else {
-        // Canvas is taller, crop width
+        // Canvas is taller, crop width — keep center crop
         sWidth = img.height * canvasRatio;
         sx = (img.width - sWidth) / 2;
       }
@@ -122,7 +122,21 @@ const ScratchCard: React.FC<ScratchCardProps> = ({
 
       // Auto reveal if more than 50% is scratched
       if (percentage > 50) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let fadeOpacity = 0;
+        const fadeInterval = setInterval(() => {
+          fadeOpacity += 0.05;
+
+          ctx.save();
+          ctx.globalAlpha = fadeOpacity;
+          ctx.fillStyle = "black"; // or 'black', depending on the desired effect
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          if (fadeOpacity >= 1) {
+            clearInterval(fadeInterval);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        }, 50); // smooth fade every 50ms
       }
     }, 1000);
 
@@ -190,12 +204,12 @@ const ScratchCard: React.FC<ScratchCardProps> = ({
         onTouchEnd={stopDrawing}
       />
       {/* {cleared < 50 && (
-          <div className="absolute bottom-4 left-0 right-0 text-center text-white text-lg">
-            <span className="bg-black bg-opacity-50 px-4 py-2 rounded-full">
-              Scratch to reveal
-            </span>
-          </div>
-        )} */}
+        <div className="absolute bottom-4 left-0 right-0 text-center text-white text-lg">
+          <span className="bg-black bg-opacity-50 px-4 py-2 rounded-full">
+            Scratch to reveal
+          </span>
+        </div>
+      )} */}
     </div>
   );
 };
