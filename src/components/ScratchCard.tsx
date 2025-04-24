@@ -16,23 +16,30 @@ const ScratchCard: React.FC<ScratchCardProps> = ({
   const [cleared, setCleared] = useState(0);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageDrawnRef = useRef(false);
 
   // Handle resize
   useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
-        setCanvasSize({ width, height });
-      }
-    };
+    if (!containerRef.current) return;
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        setCanvasSize((prev) => {
+          if (prev.width === width && prev.height === height) return prev;
+          return { width, height };
+        });
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
   }, []);
 
   // Initialize canvas and draw the foreground image
   useEffect(() => {
+    if (imageDrawnRef.current) return;
+
     const canvas = canvasRef.current;
     if (!canvas || canvasSize.width === 0) return;
 
@@ -182,13 +189,13 @@ const ScratchCard: React.FC<ScratchCardProps> = ({
         onTouchMove={draw}
         onTouchEnd={stopDrawing}
       />
-      {cleared < 50 && (
-        <div className="absolute bottom-4 left-0 right-0 text-center text-white text-lg">
-          <span className="bg-black bg-opacity-50 px-4 py-2 rounded-full">
-            Scratch to reveal
-          </span>
-        </div>
-      )}
+      {/* {cleared < 50 && (
+          <div className="absolute bottom-4 left-0 right-0 text-center text-white text-lg">
+            <span className="bg-black bg-opacity-50 px-4 py-2 rounded-full">
+              Scratch to reveal
+            </span>
+          </div>
+        )} */}
     </div>
   );
 };

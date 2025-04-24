@@ -14,7 +14,7 @@ const Hero: React.FC = () => {
 
       <div className="absolute inset-0 flex flex-col items-center  text-center z-10 pointer-events-none">
         <div className=" p-8 rounded-lg max-w-xl mx-4 ">
-          <div className="flex flex-col sm:flex-row justify-center pointer-events-auto mb-8">
+          <div className="flex flex-row justify-center pointer-events-auto mb-8">
             <img
               src="/assets/yuki_logo.png"
               alt="Anime World"
