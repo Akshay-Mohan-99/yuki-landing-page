@@ -55,7 +55,7 @@ const ContactForm: React.FC = () => {
     }
 
     // if (!formData.subject.trim()) {
-    //   newErrors.subject = "Subject is required";
+    //   newErrors.subject = "Subject is required" ;
     // }
 
     if (!formData.message.trim()) {
