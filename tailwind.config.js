@@ -12,6 +12,8 @@ export default {
       },
       colors: {
         violetBrand: "#7523FD",
+        purpleBrand: "#FF00C2",
+        transparent: 'transparent',
       },
     },
   },

@@ -1,16 +1,146 @@
-import React from "react";
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import ContactForm from "./components/ContactForm";
-import Footer from "./components/Footer";
+import React, { useState, useEffect } from 'react';
+import { Route, Link, useNavigate, Routes } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
+import GameScreen from './components/GameScreen';
+import GameOverScreen from './components/GameOverScreen';
+import Leaderboard from './components/Leaderboard';
+import { sendVerificationEmail } from './utils/gameUtils';
 
 function App() {
+  const [gameState, setGameState] = useState<{
+    status: 'landing' | 'playing' | 'gameOver' | 'leaderboard';
+    score: number;
+    lives: number;
+    playerEmail: string | null;
+    emailVerified: boolean;
+  }>({
+    status: 'landing',
+    score: 0,
+    lives: 3,
+    playerEmail: null,
+    emailVerified: false
+  });
+  const navigate = useNavigate();
+
+  // Reset game state
+  const resetGame = () => {
+    setGameState(prevState => ({
+      ...prevState,
+      status: 'playing',
+      score: 0,
+      lives: 3
+    }));
+  };
+
+  // Start game from landing page
+  const startGame = () => {
+    resetGame();
+  };
+
+  // Update score
+  const updateScore = (points: number) => {
+    setGameState(prevState => ({
+      ...prevState,
+      score: prevState.score + points
+    }));
+  };
+
+  // Update lives
+  const updateLives = () => {
+    setGameState(prevState => {
+      const newLives = prevState.lives - 1;
+      
+      // Check for game over
+      if (newLives <= 0) {
+        return {
+          ...prevState,
+          lives: 0,
+          status: 'gameOver'
+        };
+      }
+      
+      return {
+        ...prevState,
+        lives: newLives
+      };
+    });
+  };
+
+  // Handle game over
+  const handleGameOver = () => {
+    setGameState(prevState => ({
+      ...prevState,
+      status: 'gameOver'
+    }));
+  };
+
+  // Handle email submission
+  const handleSubmitEmail = async (email: string) => {
+    setGameState(prevState => ({
+      ...prevState,
+      playerEmail: email
+    }));
+    
+    // Simulate sending verification email
+    try {
+      const verified = await sendVerificationEmail(email, gameState.score);
+      
+      if (verified) {
+        setGameState(prevState => ({
+          ...prevState,
+          emailVerified: true,
+          status: 'landing'
+        }));
+        navigate('/leaderboard');
+      }
+    } catch (error) {
+      console.error('Failed to verify email:', error);
+    }
+  };
+
+  // Render based on game state
   return (
-    <div className=" font-800 min-h-screen bg-black">
-      {/* <Navbar /> */}
-      <Hero />
-      <ContactForm />
-      <Footer />
+    <div
+      className="bg-violetBrand bg-cover bg-center"
+      style={{ backgroundImage: "url('/assets/landing_bg.svg')" }}
+    >
+      <Routes>
+        <Route path="/"
+          element= {
+            <>
+              {gameState.status === 'landing' && (
+                <LandingPage startGame={startGame} />
+              )}
+              
+              {gameState.status === 'playing' && (
+                <GameScreen
+                  score={gameState.score}
+                  lives={gameState.lives}
+                  onScoreUpdate={updateScore}
+                  onLivesUpdate={updateLives}
+                  onGameOver={handleGameOver}
+                />
+              )}
+              
+              {gameState.status === 'gameOver' && (
+                <GameOverScreen
+                  score={gameState.score}
+                  onRestart={resetGame}
+                  onSubmitEmail={handleSubmitEmail}
+                />
+              )}
+            </>
+          }
+        />
+        <Route path="leaderboard"
+          element={
+            <Leaderboard
+              currentScore={gameState.score}
+              playerEmail={gameState.playerEmail}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }
