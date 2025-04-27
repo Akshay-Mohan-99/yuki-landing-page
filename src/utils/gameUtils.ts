@@ -100,34 +100,32 @@ export const sendVerificationEmail = async (email: string, score: number): Promi
     if(savedUser){
       currentUser = JSON.parse(localStorage.getItem(`user-${email}`) || '');
     } else {
-      // Try to sign up first
-      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password: uuidv4(), // Random password
-      });
 
-      if (signUpError) {
-        if (signUpError.message.includes('User already registered')) {
-          // If user already exists, try logging in
-          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-            email,
-            password: DEFAULT_PASSWORD
-          });
+      try{
+        const { data: userProfile, error: userProfileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email) // ⬅️ filter by the field you want
+          .single()
+  
+        if(!userProfileError && userProfile){
+          currentUser = userProfile;
+        } 
+      } catch(e) {
+        console.error('user not in profiles');
+      }
 
-          if (loginError) throw loginError;
+      if(!currentUser){
+        // Try to sign up first
+        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password: uuidv4()
+        });
 
-          if (loginData.user) {
-            currentUser = loginData.user;
-          } else {
-            throw new Error('No user returned on login');
-          }
-        } else {
-          throw signUpError;
+        if(!signUpError && user){
+          currentUser = user;
         }
-      } else {
-        currentUser = user;
-      } 
-
+      }
     }
     
     if (!currentUser) throw new Error('No user returned from signup');
