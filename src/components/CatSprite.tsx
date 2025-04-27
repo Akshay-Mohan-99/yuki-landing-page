@@ -18,7 +18,7 @@ const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick }) => {
     let initialVx = 0;
     let initialVy = 0;
   
-    const distanceToCenter = (window.innerHeight / 2) - startPos.y;
+    const distanceToCenter = (window.innerHeight / 2) - startPos.y - 30;
     initialVy = -Math.sqrt(2 * GRAVITY * Math.abs(distanceToCenter));
 
     // Adjust initialVx based on where the cat spawns

@@ -63,10 +63,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     
     const gameLoop = () => {
       const now = Date.now();
-      
+      // Calculate how many cats to spawn based on score
+      const spawnCount = Math.min(1 + Math.floor(score / 10), 5); // Max 5 cats at once
+
       // Spawn cats based on difficulty
       if (now - lastCatTime.current > (2000 / difficulty)) {
-        spawnCat();
+        for (let i = 0; i < spawnCount; i++) {
+          spawnCat(); // Spawn the cat (this function will spawn a cat)
+        }
         lastCatTime.current = now;
       }
       
