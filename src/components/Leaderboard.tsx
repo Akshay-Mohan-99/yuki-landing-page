@@ -79,7 +79,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) 
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
           </div>
         ) : (
-          <div className="bg-white text-black border-2 border-gray-900 rounded-xl overflow-hidden shadow-xl">
+          <div className="bg-white text-black border-2 border-gray-900 rounded-xl overflow-x-auto shadow-xl">
             <table className="w-full">
               <thead>
                 <tr className="bg-transparent">
