@@ -86,7 +86,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="What do we call you?"
-                  className="w-full px-4 py-3 rounded-lg bg-white backdrop-blur-sm border border-white/20 text-black placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-4 py-3 rounded-lg bg-white backdrop-blur-sm border border-white/20 text-black placeholder-black/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
               <div>
@@ -95,7 +95,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your email"
-                  className="w-full px-4 py-3 rounded-lg bg-white backdrop-blur-sm border border-white/20 text-black placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-4 py-3 rounded-lg bg-white backdrop-blur-sm border border-white/20 text-black placeholder-black/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
                 {error && <p className="mt-1 text-red-300 text-sm">{error}</p>}
               </div>
