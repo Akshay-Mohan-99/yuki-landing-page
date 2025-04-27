@@ -3,6 +3,7 @@ import { Cat } from '../types';
 import { generateCat } from '../utils/gameUtils';
 import CatSprite from './CatSprite';
 import GameHUD from './GameHUD';
+const audioCatClick = new Audio('/sounds/cat_click.mp3');
 
 interface GameScreenProps {
   score: number;
@@ -83,6 +84,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   
   // Handle cat click
   const handleCatClick = (cat: Cat) => {
+    
+    audioCatClick.play();
     // Add points
     onScoreUpdate(cat.points);
     
