@@ -20,8 +20,9 @@ const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick }) => {
   
     // Since the cat starts just below the screen, we'll shoot it upward
     // Always shoot upward initially
-    const baseSpeed = 1.3; // You can tweak this value
-    initialVy = -(window.innerHeight / 1000) * baseSpeed;
+    const baseSpeed = 600; // tweakable
+    initialVy = -(baseSpeed / window.innerHeight);
+    
 
     // Adjust initialVx based on where the cat spawns
     if (startPos.x < window.innerWidth / 2) {
