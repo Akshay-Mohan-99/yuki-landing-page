@@ -5,41 +5,50 @@ import { useNavigate } from 'react-router-dom';
 interface GameOverScreenProps {
   score: number;
   onRestart: () => void;
-  onSubmitEmail: (email: string) => void;
+  onSubmitEmail: (email: string, name: string) => void;
+}
+
+function getLatestUser(type: string) {
+  let latestUser = null;
+  let latestTimestamp = 0;
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+
+    if (key && key.startsWith('user-')) {
+      const user = JSON.parse(localStorage.getItem(key) || '{}');
+      
+      if (user.savedAt && user.savedAt > latestTimestamp) {
+        latestTimestamp = user.savedAt;
+        latestUser = { key, ...user };
+      }
+    }
+  }
+
+  if (latestUser) {
+    if(type === 'email')
+      return latestUser.email;
+    else if(type === 'name')
+      return latestUser.name;
+  } else {
+    return '';
+  }
 }
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSubmitEmail }) => {
-  const [email, setEmail] = useState(() => {
-    let latestUser = null;
-    let latestTimestamp = 0;
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-
-      if (key && key.startsWith('user-')) {
-        const user = JSON.parse(localStorage.getItem(key) || '{}');
-        
-        if (user.savedAt && user.savedAt > latestTimestamp) {
-          latestTimestamp = user.savedAt;
-          latestUser = { key, ...user };
-        }
-      }
-    }
-
-    if (latestUser) {
-      console.log('Latest user:', latestUser);
-      const latestEmail = latestUser.key.replace('user-', '');
-      return latestEmail;
-    } else {
-      return '';
-    }
-  });
+  const [email, setEmail] = useState(getLatestUser('email'));
+  const [name, setName] = useState(getLatestUser('name'));
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim()) {
+      setError('Please enter your name');
+      return;
+    }
     
     if (!email.trim()) {
       setError('Please enter your email');
@@ -51,7 +60,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
       return;
     }
     
-    onSubmitEmail(email);
+    onSubmitEmail(email,name);
     setSubmitted(true);
     navigate('/leaderboard')
     setError('');
@@ -73,11 +82,20 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <input
+                  type="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="What do we call you?"
+                  className="w-full px-4 py-3 rounded-lg bg-white backdrop-blur-sm border border-white/20 text-black placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your email"
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="w-full px-4 py-3 rounded-lg bg-white backdrop-blur-sm border border-white/20 text-black placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
                 {error && <p className="mt-1 text-red-300 text-sm">{error}</p>}
               </div>

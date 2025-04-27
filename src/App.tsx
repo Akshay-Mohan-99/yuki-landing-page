@@ -75,15 +75,16 @@ function App() {
   };
 
   // Handle email submission
-  const handleSubmitEmail = async (email: string) => {
+  const handleSubmitEmail = async (email: string, name: string) => {
     setGameState(prevState => ({
       ...prevState,
-      playerEmail: email
+      playerEmail: email,
+      playerName: name
     }));
     
     // Simulate sending verification email
     try {
-      const verified = await sendVerificationEmail(email, gameState.score);
+      const verified = await sendVerificationEmail(email, name, gameState.score);
       
       if (verified) {
         setGameState(prevState => ({

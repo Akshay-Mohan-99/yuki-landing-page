@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Trophy } from 'lucide-react';
-import { Player } from '../types';
+import { Player, Scores } from '../types';
 import { getLeaderboardData } from '../utils/gameUtils';
 import { Link } from 'react-router-dom';
 
@@ -10,8 +10,9 @@ interface LeaderboardProps {
 }
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) => {
-  const [leaderboard, setLeaderboard] = useState<Player[]>([]);
+  const [leaderboard, setLeaderboard] = useState<Scores[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ email: string, id: string } | null>(null);
   const [playerRank, setPlayerRank] = useState<number | null>(null);
 
   useEffect(() => {
@@ -21,10 +22,13 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) 
       try {
         const data = await getLeaderboardData();
         setLeaderboard(data);
+
+        const currentLocalUser = JSON.parse(localStorage.getItem(`user-${playerEmail}`) || '');
         
         // Find player's rank if they have submitted an email
-        if (playerEmail) {
-          const playerIndex = data.findIndex(player => player.email === playerEmail);
+        if (currentLocalUser?.email) {
+          setCurrentUser(currentLocalUser);
+          const playerIndex = data.findIndex(player => player.user_id === currentLocalUser.id);
           if (playerIndex !== -1) {
             setPlayerRank(playerIndex + 1);
           }
@@ -94,7 +98,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) 
                   <tr 
                     key={index} 
                     className={`${
-                      player.email === playerEmail ? 'bg-purpleBrand' : index % 2 === 0 ? 'bg-black/40' : 'bg-black/50'
+                      player.user_id === currentUser?.id ? 'bg-purpleBrand' : index % 2 === 0 ? 'bg-black/40' : 'bg-black/50'
                     }  transition-colors text-white hover:bg-black`}
                   >
                     <td className="px-4 py-3">
@@ -110,7 +114,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) 
                         index + 1
                       )}
                     </td>
-                    <td className="px-4 py-3">{player.email}</td>
+                    <td className="px-4 py-3">{player.name}</td>
                     <td className="px-4 py-3 text-right font-bold">{player.score}</td>
                     <td className="px-4 py-3 text-right text-sm opacity-75">{player.date}</td>
                   </tr>

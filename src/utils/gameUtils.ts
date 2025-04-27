@@ -1,7 +1,6 @@
-import { Cat, Player } from '../types';
+import { Cat, Player, Scores } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from './supabase';
-const DEFAULT_PASSWORD = import.meta.env.VITE_KNOWN_PASSWORD;
 
 // Cat images
 const CAT_IMAGES = {
@@ -11,13 +10,18 @@ const CAT_IMAGES = {
     '/assets/stickers/image_771.png',
     '/assets/stickers/image_773.png',
     '/assets/stickers/image_774.png',
+    '/assets/stickers/image_770.png',
+    '/assets/stickers/image_775.png',
+    '/assets/stickers/image_772.png'
   ],
   rare: [
-    '/assets/stickers/image_770.png',
-    '/assets/stickers/image_775.png'
+    '/assets/stickers/Gold_1.svg',
+    '/assets/stickers/Gold_2.svg',
+    '/assets/stickers/Gold_3.svg',
+    '/assets/stickers/Gold_4.svg'
   ],
   legendary: [
-    '/assets/stickers/image_772.png'
+    '/assets/stickers/Super_rare.svg'
   ]
 };
 
@@ -63,7 +67,7 @@ export const generateCat = (width: number, height: number): Cat => {
   };
 };
 
-export const getLeaderboardData = async (): Promise<Player[]> => {
+export const getLeaderboardData = async (): Promise<Scores[]> => {
   const { data: scores, error } = await supabase
     .from('scores')
     .select(`
@@ -84,53 +88,57 @@ export const getLeaderboardData = async (): Promise<Player[]> => {
   }
 
   return scores.map(score => ({
-    email: score.profiles.email,
+    user_id: score.profiles.id,
+    name: score.profiles.name,
     score: score.score,
-    verified: true,
     date: new Date(score.created_at).toLocaleDateString()
   }));
 };
 
-export const sendVerificationEmail = async (email: string, score: number): Promise<boolean> => {
+export const sendVerificationEmail = async (email: string, name: string, score: number): Promise<boolean> => {
   try {
 
     let currentUser = null;
-    const savedUser = localStorage.getItem(`user-${email}`);
 
-    if(savedUser){
-      currentUser = JSON.parse(localStorage.getItem(`user-${email}`) || '');
-    } else {
+    try{
+      const { data: userProfile, error: userProfileError } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .eq('email', email) // ⬅️ filter by the field you want
+        .single()
 
-      try{
-        const { data: userProfile, error: userProfileError } = await supabase
+      if(!userProfileError && userProfile){
+        currentUser = userProfile;
+      } 
+    } catch(e) {
+      console.error('user not in profiles');
+    }
+
+    if(!currentUser){
+      // Try to sign up first
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password: uuidv4(),
+        options: {
+          data: {
+            name
+          }
+        }
+      });
+
+      if(!signUpError && user){
+        const { data: userProfile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, name')
           .eq('email', email) // ⬅️ filter by the field you want
           .single()
-  
-        if(!userProfileError && userProfile){
-          currentUser = userProfile;
-        } 
-      } catch(e) {
-        console.error('user not in profiles');
-      }
-
-      if(!currentUser){
-        // Try to sign up first
-        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password: uuidv4()
-        });
-
-        if(!signUpError && user){
-          currentUser = user;
-        }
+        currentUser = userProfile;
       }
     }
     
     if (!currentUser) throw new Error('No user returned from signup');
     // Store new user into localStorage
-    localStorage.setItem(`user-${email}`, JSON.stringify({...currentUser, savedAt: Date.now()}));
+    localStorage.setItem(`user-${email}`, JSON.stringify({...currentUser, savedAt: Date.now(), email}));
 
     // Insert the score
     const { error: scoreError } = await supabase

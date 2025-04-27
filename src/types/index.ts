@@ -12,8 +12,16 @@ export interface Cat {
 
 export interface Player {
   email: string;
+  id: string;
   score: number;
   verified: boolean;
+  date: string;
+}
+
+export interface Scores {
+  user_id: string;
+  name: string;
+  score: number;
   date: string;
 }
 
