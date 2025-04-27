@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, Trophy } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface LandingPageProps {
   startGame: () => void;
@@ -15,23 +16,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ startGame }) => {
           className="h-20 w-auto"
         />
       </div>
-      <button 
-        onClick={startGame}
-        className="fixed top-4 right-4 inline-block text-sm group  "
-      >
-        <span className="relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-white transition-colors duration-300 ease-out border-2 border-gray-900 rounded-lg group-hover:text-white">
-          <span className="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-purpleBrand"></span>
-          <span className="absolute left-0 w-48 h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-gray-900 group-hover:-rotate-180 ease"></span>
-          <span className="relative flex justify-center items-center">
-            <Trophy size={18} className="text-yellow-300 mr-2" />
-            <span className="font-bold text-white">Leadership Board</span>
+      <Link to="/leaderboard">
+        <button 
+          className="fixed top-4 right-4 inline-block text-sm group  "
+        >
+          <span className="relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-white transition-colors duration-300 ease-out border-2 border-gray-900 rounded-lg group-hover:text-white">
+            <span className="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-purpleBrand"></span>
+            <span className="absolute left-0 w-48 h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-gray-900 group-hover:-rotate-180 ease"></span>
+            <span className="relative flex justify-center items-center">
+              <Trophy size={18} className="text-yellow-300 mr-2" />
+              <span className="font-bold text-white">Leadership Board</span>
+            </span>
           </span>
-        </span>
-        <span
-          className="absolute bottom-0 right-0 w-full h-12 -mb-1 -mr-1 transition-all duration-200 ease-linear bg-gray-900 rounded-lg group-hover:mb-0 group-hover:mr-0"
-          data-rounded="rounded-lg"
-        ></span>
-      </button>
+          <span
+            className="absolute bottom-0 right-0 w-full h-12 -mb-1 -mr-1 transition-all duration-200 ease-linear bg-gray-900 rounded-lg group-hover:mb-0 group-hover:mr-0"
+            data-rounded="rounded-lg"
+          ></span>
+        </button>
+      </Link>
 
       
       {/* <div className="max-w-md bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-2xl mb-8">

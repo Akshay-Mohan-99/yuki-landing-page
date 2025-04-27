@@ -1,7 +1,7 @@
 import { Cat, Player } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from './supabase';
-const DEFAULT_PASSWORD = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const DEFAULT_PASSWORD = import.meta.env.VITE_KNOWN_PASSWORD;
 
 // Cat images
 const CAT_IMAGES = {

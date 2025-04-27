@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface GameOverScreenProps {
   score: number;
@@ -35,6 +36,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +53,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
     
     onSubmitEmail(email);
     setSubmitted(true);
+    navigate('/leaderboard')
     setError('');
   };
 
@@ -98,25 +101,25 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ score, onRestart, onSub
         ) : (
           <div className="text-center">
             <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-              <p className="text-green-300">Verification email sent! Check your inbox to complete verification.</p>
+              <p className="text-green-300">Score submited</p>
             </div>
           </div>
         )}
         
         <button 
           onClick={onRestart} 
-          className=" w-full relative inline-block text-lg group"
+          className=" w-full relative inline-block text-lg group mt-2"
         >
-          <span className=" w-full relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-white transition-colors duration-300 ease-out border-2 border-purpleBrand rounded-lg group-hover:text-white">
-            <span className="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-gray-900"></span>
-            <span className="absolute left-0 w-screen  h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-purpleBrand group-hover:-rotate-180 ease"></span>
+          <span className=" w-full relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-white transition-colors duration-300 ease-out border-2 border-gray-900 rounded-lg group-hover:text-white">
+            <span className="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-purpleBrand"></span>
+            <span className="absolute left-0 w-screen h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-gray-900 group-hover:-rotate-180 ease"></span>
             <span className="relative flex justify-center items-center">
               <RefreshCw size={18} className="mr-2" />
               Play Again
             </span>
           </span>
           <span
-            className="absolute bottom-0 right-0 w-full h-12 -mb-1 -mr-1 transition-all duration-200 ease-linear bg-purpleBrand rounded-lg group-hover:mb-0 group-hover:mr-0"
+            className="absolute bottom-0 right-0 w-full h-12 -mb-1 -mr-1 transition-all duration-200 ease-linear bg-gray-900 rounded-lg group-hover:mb-0 group-hover:mr-0"
             data-rounded="rounded-lg"
           ></span>
         </button>

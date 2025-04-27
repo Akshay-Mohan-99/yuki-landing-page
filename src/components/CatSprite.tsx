@@ -20,7 +20,8 @@ const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick }) => {
   
     // Since the cat starts just below the screen, we'll shoot it upward
     // Always shoot upward initially
-    initialVy = -0.8;
+    const baseSpeed = 1.3; // You can tweak this value
+    initialVy = -(window.innerHeight / 1000) * baseSpeed;
 
     // Adjust initialVx based on where the cat spawns
     if (startPos.x < window.innerWidth / 2) {
@@ -61,30 +62,12 @@ const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick }) => {
   }, [cat]);
   
 
-  const getCatClassName = () => {
-    let baseClass = "absolute transform transition-transform duration-100 cursor-pointer select-none";
-
-    switch (cat.type) {
-      case 'common':
-        baseClass += " hover:scale-110";
-        break;
-      case 'rare':
-        baseClass += " hover:scale-110 animate-bounce";
-        break;
-      case 'legendary':
-        baseClass += " hover:scale-110 animate-pulse";
-        break;
-    }
-
-    return baseClass;
-  };
-
   return (
     <div 
       ref={elementRef}
       className={`absolute z-30 transform cursor-pointer 
-        w-24 h-24 md:w-24 md:h-24 lg:w-32 lg:h-32
-        `}
+        p-6 
+      `}
       style={{
         transform: `translate(${position.x}px, ${position.y}px)`,
       }}
@@ -96,10 +79,11 @@ const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick }) => {
       <img 
         src={cat.image} 
         alt="Cat" 
-        className="w-full h-full object-contain pointer-events-none"
+        className="object-contain pointer-events-none w-32 h-32 md:w-32 md:h-32 lg:w-32 lg:h-32"
         draggable="false"
       />
     </div>
+
   );
   
   
