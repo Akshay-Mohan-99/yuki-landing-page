@@ -24,7 +24,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
   const lastCatTime = useRef(Date.now());
-  const catRef = useRef<string|null>(null);
   
   // Increase difficulty as score increases
   useEffect(() => {
@@ -87,7 +86,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const gameLoop = () => {
       const now = Date.now();
       // Calculate how many cats to spawn based on score
-      const spawnCount = Math.min(1 + Math.floor(score / 10), 5); // Max 5 cats at once
+      const spawnCount = Math.min(1 + Math.floor(score / 6), 5); // Max 5 cats at once
 
       // Spawn cats based on difficulty
       if (now - lastCatTime.current > (2000 / difficulty)) {
