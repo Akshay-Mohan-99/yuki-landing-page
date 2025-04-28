@@ -12,7 +12,7 @@ interface LeaderboardProps {
 const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) => {
   const [leaderboard, setLeaderboard] = useState<Scores[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<{ email: string, id: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ email: string, id: string, name: string } | null>(null);
   const [playerRank, setPlayerRank] = useState<number | null>(null);
 
   useEffect(() => {
@@ -65,13 +65,13 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ currentScore, playerEmail }) 
             <h2 className="text-xl font-semibold mb-2">Your Score</h2>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm opacity-75">Email: {playerEmail}</p>
-                <p className="text-2xl font-bold text-yellow-300">{currentScore} points</p>
+                { currentUser?.name ? <p className="text-sm opacity-75">Name: {currentUser?.name}</p> : null }
+                <p className="text-2xl borde font-bold text-purpleBrand text-nowrap">{currentScore} points</p>
               </div>
               {playerRank && (
                 <div className="bg-purpleBrand rounded-full px-4 py-2 flex items-center">
                   <Trophy size={18} className="text-yellow-300 mr-2" />
-                  <span className="font-bold text-white">Rank #{playerRank}</span>
+                  <span className="font-bold text-white text-nowrap">Rank #{playerRank}</span>
                 </div>
               )}
             </div>

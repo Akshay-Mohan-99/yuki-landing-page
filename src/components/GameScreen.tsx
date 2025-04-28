@@ -3,7 +3,6 @@ import { Cat } from '../types';
 import { generateCat } from '../utils/gameUtils';
 import CatSprite from './CatSprite';
 import GameHUD from './GameHUD';
-const audioCatClick = new Audio('/sounds/cat_click.mp3');
 
 interface GameScreenProps {
   score: number;
@@ -25,34 +24,58 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
   const lastCatTime = useRef(Date.now());
+  const catRef = useRef<string|null>(null);
   
   // Increase difficulty as score increases
   useEffect(() => {
     setDifficulty(Math.min(3, 1 + Math.floor(score / 30)));
   }, [score]);
   
+
   // Cat spawn logic
   const spawnCat = useCallback(() => {
     if (gameAreaRef.current) {
       const { width, height } = gameAreaRef.current.getBoundingClientRect();
       const newCat = generateCat(width, height);
-      
+  
       setCats(prevCats => [...prevCats, newCat]);
-      
-      // Auto-remove cat after time expires (missed cat)
-      setTimeout(() => {
-        setCats(prevCats => {
-          const updatedCats = prevCats.filter(cat => cat.id !== newCat.id);
-          if (updatedCats.length === prevCats.length) {
-            return prevCats; // Cat was already clicked
-          } else {
-            onLivesUpdate(); // Cat was missed
-            return updatedCats;
+  
+      const trackCatMovement = (catId: string) => {
+        let hasEntered = false;
+        const intervalId = setInterval(() => {
+          const catElement = document.getElementById(catId); // 👈 get the DOM element
+          if (catElement && gameAreaRef.current) {
+            const { width, height } = gameAreaRef.current.getBoundingClientRect();
+            const rect = catElement.getBoundingClientRect(); // 👈 live position
+    
+            console.log({
+              x: rect.x,
+              y: rect.y,
+              width,
+              height,
+              hasEntered
+            })
+            if (!hasEntered) {
+              if (rect.x >= 0 && rect.x <= width && rect.y < height) {
+                hasEntered = true;
+              }
+            } else {
+              if (rect.y > height) {
+                clearInterval(intervalId);
+                onLivesUpdate();
+                setCats(prev => prev.filter(c => c.id !== catId));
+              }
+            }
           }
-        });
-      }, 2000);
+        }, 100);
+      };
+      
+  
+      trackCatMovement(newCat.id);
     }
   }, [onLivesUpdate]);
+  
+  
   
   // Game loop
   useEffect(() => {
@@ -88,7 +111,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   
   // Handle cat click
   const handleCatClick = (cat: Cat) => {
-    
+    const audioCatClick = new Audio('/sounds/cat_click.mp3');
     audioCatClick.play();
     // Add points
     onScoreUpdate(cat.points);
@@ -138,6 +161,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         {cats.map(cat => (
           <CatSprite
             key={cat.id}
+            id={cat.id}
             cat={cat}
             onClick={() => handleCatClick(cat)}
           />
