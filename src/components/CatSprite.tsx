@@ -1,90 +1,88 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Cat } from '../types';
 
 interface CatSpriteProps {
   cat: Cat;
   onClick: () => void;
+  id: string
 }
 
 const GRAVITY = 0.0010; // Pixels per ms²
+const BOOST_FACTOR =  1 + (window.innerHeight / 2500); 
 
-const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick }) => {
+const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick, id }) => {
+  
   const [position, setPosition] = useState(cat.position);
-  const [velocity, setVelocity] = useState<{ vx: number; vy: number }>(() => {
-    // Generate the initial position just below the screen
+
+  const initialVelocity = useMemo(() => {
     const startPos = cat.position;
+    const centerY = window.innerHeight / 2;
+    const distanceToCenter = startPos.y - centerY;
   
-    // Set initial velocity based on the spawn side
-    let initialVx = 0;
-    let initialVy = 0;
+    const baseVy = Math.sqrt(2 * GRAVITY * Math.abs(distanceToCenter));
   
-    const distanceToCenter = (window.innerHeight / 2) - startPos.y - 30;
-    initialVy = -Math.sqrt(2 * GRAVITY * Math.abs(distanceToCenter));
+    const initialVy = -baseVy * BOOST_FACTOR; // boosted upward
+  
+    const initialVx = startPos.x < window.innerWidth / 2 ? 0.1 : -0.1;
+  
+    return { vx: initialVx, vy: initialVy };
+  }, [cat.position]);
+  
+  
 
-    // Adjust initialVx based on where the cat spawns
-    if (startPos.x < window.innerWidth / 2) {
-      // Left side of screen → move slightly right
-      initialVx = 0.1; // Always positive
-    } else {
-      // Right side of screen → move slightly left
-      initialVx = -0.1; // Always negative
-    }
+  // Store velocity in a ref instead of state
+  const velocityRef = useRef<{ vx: number; vy: number }>(initialVelocity);
 
-    return ({ vx: initialVx, vy: initialVy });
-  });
-  const elementRef = useRef<HTMLDivElement>(null);
-  
+  const lastTimeRef = useRef<number>(performance.now());
+
   useEffect(() => {
-    if (!elementRef.current) return;
-  
-    const startTime = performance.now();
+    let animationFrameId: number;
   
     const animate = (now: number) => {
-      const elapsed = now - startTime;
+      const dt = now - lastTimeRef.current;
+      lastTimeRef.current = now;
   
       setPosition(prev => {
-        const dt = 16; // approximate 60fps frame delta (ms)
-        const newVx = velocity.vx;
-        const newVy = velocity.vy + GRAVITY * elapsed; // gravity pulling down
+        const newVx = velocityRef.current.vx;
+        const newVy = velocityRef.current.vy + GRAVITY * dt;
+        velocityRef.current = { vx: newVx, vy: newVy };
   
         const newX = prev.x + newVx * dt;
         const newY = prev.y + newVy * dt;
-
         return { x: newX, y: newY };
       });
   
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     };
   
-    requestAnimationFrame(animate);
-  }, [cat]);
+    animationFrameId = requestAnimationFrame(animate);
+  
+    return () => {
+      cancelAnimationFrame(animationFrameId); // <== Clean up
+    };
+  }, []);
   
 
   return (
-    <div 
-      ref={elementRef}
-      className={`absolute z-30 transform cursor-pointer 
-        p-6 
-      `}
+    <div
+      className="absolute z-30 transform cursor-pointer p-6"
       style={{
         transform: `translate(${position.x}px, ${position.y}px)`,
       }}
+      id={id}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
     >
-      <img 
-        src={cat.image} 
-        alt="Cat" 
-        className="object-contain pointer-events-none w-32 h-32 md:w-32 md:h-32 lg:w-32 lg:h-32"
+      <img
+        src={cat.image}
+        alt="Cat"
+        className="object-contain pointer-events-none w-32 h-32"
         draggable="false"
       />
     </div>
-
   );
-  
-  
 };
 
 export default CatSprite;
