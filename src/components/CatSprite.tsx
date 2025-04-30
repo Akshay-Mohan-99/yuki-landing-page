@@ -82,6 +82,7 @@ const CatSprite: React.FC<CatSpriteProps> = ({ cat, onClick, id }) => {
       }}
       id={id}
       onClick={showGif ? undefined : handleClick}
+      onTouchStart={showGif ? undefined : handleClick}
     >
       {showGif ? (
         <img
