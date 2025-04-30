@@ -103,8 +103,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   // Handle cat click
   const handleCatClick = (cat: Cat) => {
-    const audioCatClick = new Audio("/sounds/cat_click.mp3");
-    audioCatClick.play();
     // Add points
     onScoreUpdate(cat.points);
 
