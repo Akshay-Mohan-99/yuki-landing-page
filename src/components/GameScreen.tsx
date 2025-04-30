@@ -58,7 +58,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
               }
             }
           }
-        }, 100);
+        }, 500);
       };
 
       trackCatMovement(newCat.id);
