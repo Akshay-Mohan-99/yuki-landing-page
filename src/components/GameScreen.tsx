@@ -25,12 +25,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [cats, setCats] = useState<Cat[]>([]);
   const [difficulty, setDifficulty] = useState(1);
   const [spawnCount, setSpawnCount] = useState(1);
+  const [tick, setTick] = useState(0);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
   const animationGameloopFrameRef = useRef<number>();
   const lastCatTime = useRef(Date.now());
   const lastTimeRef = useRef(performance.now());
+  const currentLives = useRef(lives);
 
   const catStatesRef = useRef<
     Record<
@@ -53,6 +55,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   }, [score]);
 
+  useEffect(() => {
+    currentLives.current = lives;
+  }, [lives]);
+
   // Cat spawn
   const spawnCat = useCallback(() => {
     if (gameAreaRef.current) {
@@ -73,6 +79,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       };
 
       setCats((prev) => [...prev, newCat]);
+      setTick((prev) => prev + 1);
     }
   }, []);
 
@@ -80,13 +87,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
   useEffect(() => {
     const loop = (now: number) => {
       const dt = now - lastTimeRef.current;
-      if (lives <= 0) {
+      if (currentLives.current <= 0) {
         return;
       }
+
       lastTimeRef.current = now;
-
       const updatedCats: Cat[] = [];
-
       for (const cat of cats) {
         const state = catStatesRef.current[cat.id];
         if (!state) continue;
@@ -125,19 +131,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [cats]);
+  }, [tick]);
 
   // Spawn logic loop
   useEffect(() => {
-    if (lives <= 0) {
-      console.log("Game over");
-      onGameOver();
-      catStatesRef.current = {};
-      return;
-    }
-
     const gameLoop = () => {
-      if (lives <= 0) {
+      if (currentLives.current <= 0) {
+        catStatesRef.current = {};
+        setCats([]);
+        onGameOver();
         return;
       }
       const now = Date.now();
@@ -145,7 +147,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       if (now - lastCatTime.current > 2500 / difficulty) {
         for (let i = 0; i < spawnCount; i++) {
           setTimeout(() => {
-            if (lives <= 0) {
+            if (currentLives.current <= 0) {
               return;
             }
             const audioCatPop = new Audio("/sounds/cat_pop.mp3");
@@ -159,7 +161,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       animationGameloopFrameRef.current = requestAnimationFrame(gameLoop);
     };
 
-    if (lives > 0) {
+    if (currentLives.current > 0) {
       animationGameloopFrameRef.current = requestAnimationFrame(gameLoop);
     }
 
@@ -168,7 +170,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         cancelAnimationFrame(animationGameloopFrameRef.current);
       }
     };
-  }, [lives, difficulty, spawnCount]);
+  }, [difficulty, spawnCount]);
 
   // Handle click
   const handleCatClick = (cat: Cat) => {
