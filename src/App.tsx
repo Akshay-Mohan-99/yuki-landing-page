@@ -51,13 +51,13 @@ function App() {
       const newLives = prevState.lives - 1;
       
       // Check for game over
-      if (newLives <= 0) {
-        return {
-          ...prevState,
-          lives: 0,
-          status: 'gameOver'
-        };
-      }
+      // if (newLives <= 0) {
+      //   return {
+      //     ...prevState,
+      //     lives: 0,
+      //     status: 'gameOver'
+      //   };
+      // }
       
       return {
         ...prevState,
