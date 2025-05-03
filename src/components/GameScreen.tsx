@@ -12,6 +12,9 @@ interface GameScreenProps {
   onGameOver: () => void;
 }
 
+const GRAVITY = 0.001; // pixels/ms²
+const BOOST_FACTOR = 1 + window.innerHeight / 2500;
+
 const GameScreen: React.FC<GameScreenProps> = ({
   score,
   lives,
@@ -21,138 +24,169 @@ const GameScreen: React.FC<GameScreenProps> = ({
 }) => {
   const [cats, setCats] = useState<Cat[]>([]);
   const [difficulty, setDifficulty] = useState(1);
+  const [spawnCount, setSpawnCount] = useState(1);
+
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
+  const animationGameloopFrameRef = useRef<number>();
   const lastCatTime = useRef(Date.now());
+  const lastTimeRef = useRef(performance.now());
 
-  // Increase difficulty as score increases
+  const catStatesRef = useRef<
+    Record<
+      string,
+      {
+        position: { x: number; y: number };
+        velocity: { vx: number; vy: number };
+        hasEntered: boolean;
+      }
+    >
+  >({});
+
+  // Difficulty scaling
   useEffect(() => {
-    setDifficulty(Math.min(3, 1 + Math.floor(score / 30)));
+    if (Math.min(1 + Math.floor(score / 6), 5) !== spawnCount) {
+      setSpawnCount(Math.min(1 + Math.floor(score / 6), 5));
+    }
+    if (Math.min(3, 1 + Math.floor(score / 50)) !== difficulty) {
+      setDifficulty(Math.min(3, 1 + Math.floor(score / 50)));
+    }
   }, [score]);
 
-  // Cat spawn logic
+  // Cat spawn
   const spawnCat = useCallback(() => {
     if (gameAreaRef.current) {
       const { width, height } = gameAreaRef.current.getBoundingClientRect();
       const newCat = generateCat(width, height);
 
-      setCats((prevCats) => [...prevCats, newCat]);
+      // Initialize physics state
+      const centerY = window.innerHeight / 2;
+      const distanceToCenter = newCat.position.y - centerY;
+      const baseVy = Math.sqrt(2 * GRAVITY * Math.abs(distanceToCenter));
+      const initialVy = -baseVy * BOOST_FACTOR;
+      const initialVx = newCat.position.x < window.innerWidth / 2 ? 0.1 : -0.1;
 
-      const trackCatMovement = (catId: string) => {
-        let hasEntered = false;
-        const intervalId = setInterval(() => {
-          const catElement = document.getElementById(catId); // 👈 get the DOM element
-          if (catElement && gameAreaRef.current) {
-            const { width, height } =
-              gameAreaRef.current.getBoundingClientRect();
-            const rect = catElement.getBoundingClientRect(); // 👈 live position
-            if (!hasEntered) {
-              if (rect.x >= 0 && rect.x <= width && rect.y < height) {
-                hasEntered = true;
-              }
-            } else {
-              if (rect.y > height) {
-                clearInterval(intervalId);
-                onLivesUpdate();
-                setCats((prev) => prev.filter((c) => c.id !== catId));
-              }
-            }
-          }
-        }, 500);
+      catStatesRef.current[newCat.id] = {
+        position: { ...newCat.position },
+        velocity: { vx: initialVx, vy: initialVy },
+        hasEntered: false,
       };
 
-      trackCatMovement(newCat.id);
+      setCats((prev) => [...prev, newCat]);
     }
-  }, [onLivesUpdate]);
+  }, []);
 
-  // Game loop
+  // Central animation loop
   useEffect(() => {
-    if (lives <= 0) {
-      onGameOver();
-      return;
-    }
+    const loop = (now: number) => {
+      const dt = now - lastTimeRef.current;
+      if (lives <= 0) {
+        return;
+      }
+      lastTimeRef.current = now;
 
-    const gameLoop = () => {
-      const now = Date.now();
-      // Calculate how many cats to spawn based on score
-      const spawnCount = Math.min(1 + Math.floor(score / 6), 5); // Max 5 cats at once
+      const updatedCats: Cat[] = [];
 
-      // Spawn cats based on difficulty
-      if (now - lastCatTime.current > 2000 / difficulty) {
-        for (let i = 0; i < spawnCount; i++) {
-          setTimeout(() => {
-            const audioCatPop = new Audio("/sounds/cat_pop.mp3");
-            audioCatPop.play();
-            spawnCat();
-          }, i * 200); // delay increases by 100ms for each iteration
+      for (const cat of cats) {
+        const state = catStatesRef.current[cat.id];
+        if (!state) continue;
+
+        state.velocity.vy += GRAVITY * dt;
+        state.position.x += state.velocity.vx * dt;
+        state.position.y += state.velocity.vy * dt;
+
+        const containerHeight =
+          gameAreaRef.current?.getBoundingClientRect().height ??
+          window.innerHeight;
+
+        // Mark as entered if it is within the visible screen
+        if (!state.hasEntered && state.position.y < containerHeight) {
+          state.hasEntered = true;
         }
-        lastCatTime.current = now;
+
+        // Only count as missed if it has already entered and is now below the screen
+        if (state.hasEntered && state.position.y > containerHeight) {
+          onLivesUpdate();
+          delete catStatesRef.current[cat.id];
+          continue;
+        }
+
+        updatedCats.push(cat);
       }
 
-      animationFrameRef.current = requestAnimationFrame(gameLoop);
+      setCats(updatedCats);
+      animationFrameRef.current = requestAnimationFrame(loop);
     };
 
-    animationFrameRef.current = requestAnimationFrame(gameLoop);
+    animationFrameRef.current = requestAnimationFrame(loop);
 
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [lives, difficulty, spawnCat, onGameOver]);
+  }, [cats]);
 
-  // Handle cat click
-  const handleCatClick = (cat: Cat) => {
-    // Add points
-    onScoreUpdate(cat.points);
-
-    // Remove cat from state
-    setCats((prevCats) => prevCats.filter((c) => c.id !== cat.id));
-
-    // Create and animate score popup
-    if (gameAreaRef.current) {
-      const popup = document.createElement("div");
-      popup.className = `absolute text-lg font-bold ${
-        cat.type === "common"
-          ? "text-green-400"
-          : cat.type === "rare"
-          ? "text-blue-400"
-          : "text-purpleBrand"
-      } z-30`;
-      popup.style.left = `${cat.position.x}px`;
-      popup.style.top = `${cat.position.y}px`;
-      popup.textContent = `+${cat.points}`;
-
-      gameAreaRef.current.appendChild(popup);
-
-      // Animate popup
-      let y = cat.position.y;
-      const animate = () => {
-        y -= 2;
-        popup.style.top = `${y}px`;
-        popup.style.opacity = `${1 - (cat.position.y - y) / 50}`;
-
-        if (y > cat.position.y - 50) {
-          requestAnimationFrame(animate);
-        } else {
-          popup.remove();
-        }
-      };
-
-      requestAnimationFrame(animate);
+  // Spawn logic loop
+  useEffect(() => {
+    if (lives <= 0) {
+      console.log("Game over");
+      onGameOver();
+      catStatesRef.current = {};
+      return;
     }
+
+    const gameLoop = () => {
+      if (lives <= 0) {
+        return;
+      }
+      const now = Date.now();
+
+      if (now - lastCatTime.current > 2500 / difficulty) {
+        for (let i = 0; i < spawnCount; i++) {
+          setTimeout(() => {
+            if (lives <= 0) {
+              return;
+            }
+            const audioCatPop = new Audio("/sounds/cat_pop.mp3");
+            audioCatPop.play();
+            spawnCat();
+          }, i * 200);
+        }
+        lastCatTime.current = now;
+      }
+
+      animationGameloopFrameRef.current = requestAnimationFrame(gameLoop);
+    };
+
+    if (lives > 0) {
+      animationGameloopFrameRef.current = requestAnimationFrame(gameLoop);
+    }
+
+    return () => {
+      if (animationGameloopFrameRef.current) {
+        cancelAnimationFrame(animationGameloopFrameRef.current);
+      }
+    };
+  }, [lives, difficulty, spawnCount]);
+
+  // Handle click
+  const handleCatClick = (cat: Cat) => {
+    onScoreUpdate(cat.points);
+    delete catStatesRef.current[cat.id];
+    setCats((prev) => prev.filter((c) => c.id !== cat.id));
   };
 
   return (
     <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden">
       <GameHUD score={score} lives={lives} />
-
       <div ref={gameAreaRef} className="relative w-full h-full">
         {cats.map((cat) => (
           <CatSprite
             key={cat.id}
             id={cat.id}
             cat={cat}
+            position={catStatesRef.current[cat.id]?.position}
             onClick={() => handleCatClick(cat)}
           />
         ))}
