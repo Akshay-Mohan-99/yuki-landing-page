@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Cat } from "../types";
+import { playSound } from "../utils/audioManager";
 
 interface CatSpriteProps {
   cat: Cat;
@@ -18,15 +19,14 @@ const CatSprite: React.FC<CatSpriteProps> = ({
   const touched = useRef(false);
 
   const handleClick = (e: React.FormEvent) => {
-    // e.stopPropagation();
+    e.stopPropagation();
     if (touched.current) return;
-    const audioCatClick = new Audio("/sounds/cat_click.mp3");
-    audioCatClick.play();
+    playSound("catClick");
     touched.current = true;
     setShowGif(true);
     setTimeout(() => {
       onClick();
-    }, 500);
+    }, 300);
   };
 
   return (

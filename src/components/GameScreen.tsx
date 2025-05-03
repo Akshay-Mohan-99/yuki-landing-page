@@ -3,6 +3,7 @@ import { Cat } from "../types";
 import { generateCat } from "../utils/gameUtils";
 import CatSprite from "./CatSprite";
 import GameHUD from "./GameHUD";
+import { playSound } from "../utils/audioManager";
 
 interface GameScreenProps {
   score: number;
@@ -23,16 +24,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
   onGameOver,
 }) => {
   const [cats, setCats] = useState<Cat[]>([]);
-  const [difficulty, setDifficulty] = useState(1);
-  const [spawnCount, setSpawnCount] = useState(1);
-  const [tick, setTick] = useState(0);
+  // const [tick, setTick] = useState(0);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
   const animationGameloopFrameRef = useRef<number>();
   const lastCatTime = useRef(Date.now());
   const lastTimeRef = useRef(performance.now());
+  const spawnCount = useRef(1);
+  const difficulty = useRef(1);
   const currentLives = useRef(lives);
+  const tick = useRef(0);
 
   const catStatesRef = useRef<
     Record<
@@ -47,11 +49,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   // Difficulty scaling
   useEffect(() => {
-    if (Math.min(1 + Math.floor(score / 6), 5) !== spawnCount) {
-      setSpawnCount(Math.min(1 + Math.floor(score / 6), 5));
+    if (Math.min(1 + Math.floor(score / 6), 5) !== spawnCount.current) {
+      spawnCount.current = Math.min(1 + Math.floor(score / 6), 5);
     }
-    if (Math.min(3, 1 + Math.floor(score / 50)) !== difficulty) {
-      setDifficulty(Math.min(3, 1 + Math.floor(score / 50)));
+    if (Math.min(3, 1 + Math.floor(score / 50)) !== difficulty.current) {
+      difficulty.current = Math.min(3, 1 + Math.floor(score / 50));
     }
   }, [score]);
 
@@ -79,7 +81,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       };
 
       setCats((prev) => [...prev, newCat]);
-      setTick((prev) => prev + 1);
+      tick.current = tick.current + 1;
     }
   }, []);
 
@@ -131,7 +133,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [tick]);
+  }, [tick.current]);
 
   // Spawn logic loop
   useEffect(() => {
@@ -144,14 +146,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       }
       const now = Date.now();
 
-      if (now - lastCatTime.current > 2500 / difficulty) {
-        for (let i = 0; i < spawnCount; i++) {
+      if (now - lastCatTime.current > 2500 / difficulty.current) {
+        for (let i = 0; i < spawnCount.current; i++) {
           setTimeout(() => {
             if (currentLives.current <= 0) {
               return;
             }
-            const audioCatPop = new Audio("/sounds/cat_pop.mp3");
-            audioCatPop.play();
+            playSound("catPop");
             spawnCat();
           }, i * 200);
         }
@@ -170,7 +171,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         cancelAnimationFrame(animationGameloopFrameRef.current);
       }
     };
-  }, [difficulty, spawnCount]);
+  }, []);
 
   // Handle click
   const handleCatClick = (cat: Cat) => {

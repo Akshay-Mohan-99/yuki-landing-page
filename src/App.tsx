@@ -1,34 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { Route, Link, useNavigate, Routes } from 'react-router-dom';
-import LandingPage from './components/LandingPage';
-import GameScreen from './components/GameScreen';
-import GameOverScreen from './components/GameOverScreen';
-import Leaderboard from './components/Leaderboard';
-import { sendVerificationEmail } from './utils/gameUtils';
+import React, { useState, useEffect } from "react";
+import { Route, Link, useNavigate, Routes } from "react-router-dom";
+import LandingPage from "./components/LandingPage";
+import GameScreen from "./components/GameScreen";
+import GameOverScreen from "./components/GameOverScreen";
+import Leaderboard from "./components/Leaderboard";
+import { sendVerificationEmail } from "./utils/gameUtils";
+import { initAudio } from "./utils/audioManager";
 
 function App() {
   const [gameState, setGameState] = useState<{
-    status: 'landing' | 'playing' | 'gameOver' | 'leaderboard';
+    status: "landing" | "playing" | "gameOver" | "leaderboard";
     score: number;
     lives: number;
     playerEmail: string | null;
     emailVerified: boolean;
   }>({
-    status: 'landing',
+    status: "landing",
     score: 0,
     lives: 3,
     playerEmail: null,
-    emailVerified: false
+    emailVerified: false,
   });
   const navigate = useNavigate();
+  useEffect(() => {
+    initAudio();
+  }, []);
 
   // Reset game state
   const resetGame = () => {
-    setGameState(prevState => ({
+    setGameState((prevState) => ({
       ...prevState,
-      status: 'playing',
+      status: "playing",
       score: 0,
-      lives: 3
+      lives: 3,
     }));
   };
 
@@ -39,17 +43,17 @@ function App() {
 
   // Update score
   const updateScore = (points: number) => {
-    setGameState(prevState => ({
+    setGameState((prevState) => ({
       ...prevState,
-      score: prevState.score + points
+      score: prevState.score + points,
     }));
   };
 
   // Update lives
   const updateLives = () => {
-    setGameState(prevState => {
+    setGameState((prevState) => {
       const newLives = prevState.lives - 1;
-      
+
       // Check for game over
       // if (newLives <= 0) {
       //   return {
@@ -58,44 +62,48 @@ function App() {
       //     status: 'gameOver'
       //   };
       // }
-      
+
       return {
         ...prevState,
-        lives: newLives
+        lives: newLives,
       };
     });
   };
 
   // Handle game over
   const handleGameOver = () => {
-    setGameState(prevState => ({
+    setGameState((prevState) => ({
       ...prevState,
-      status: 'gameOver'
+      status: "gameOver",
     }));
   };
 
   // Handle email submission
   const handleSubmitEmail = async (email: string, name: string) => {
-    setGameState(prevState => ({
+    setGameState((prevState) => ({
       ...prevState,
       playerEmail: email,
-      playerName: name
+      playerName: name,
     }));
-    
+
     // Simulate sending verification email
     try {
-      const verified = await sendVerificationEmail(email, name, gameState.score);
-      
+      const verified = await sendVerificationEmail(
+        email,
+        name,
+        gameState.score
+      );
+
       if (verified) {
-        setGameState(prevState => ({
+        setGameState((prevState) => ({
           ...prevState,
           emailVerified: true,
-          status: 'landing'
+          status: "landing",
         }));
-        navigate('/leaderboard');
+        navigate("/leaderboard");
       }
     } catch (error) {
-      console.error('Failed to verify email:', error);
+      console.error("Failed to verify email:", error);
     }
   };
 
@@ -106,14 +114,15 @@ function App() {
       style={{ backgroundImage: "url('/assets/landing_bg.svg')" }}
     >
       <Routes>
-        <Route path="/"
-          element= {
+        <Route
+          path="/"
+          element={
             <>
-              {gameState.status === 'landing' && (
+              {gameState.status === "landing" && (
                 <LandingPage startGame={startGame} />
               )}
-              
-              {gameState.status === 'playing' && (
+
+              {gameState.status === "playing" && (
                 <GameScreen
                   score={gameState.score}
                   lives={gameState.lives}
@@ -122,8 +131,8 @@ function App() {
                   onGameOver={handleGameOver}
                 />
               )}
-              
-              {gameState.status === 'gameOver' && (
+
+              {gameState.status === "gameOver" && (
                 <GameOverScreen
                   score={gameState.score}
                   onRestart={resetGame}
@@ -133,7 +142,8 @@ function App() {
             </>
           }
         />
-        <Route path="leaderboard"
+        <Route
+          path="leaderboard"
           element={
             <Leaderboard
               currentScore={gameState.score}
