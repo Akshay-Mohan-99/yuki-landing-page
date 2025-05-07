@@ -1,6 +1,6 @@
-import React from 'react';
-import { Play, Trophy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Play, Trophy } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface LandingPageProps {
   startGame: () => void;
@@ -9,23 +9,20 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ startGame }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-white">
-      <div className="flex flex-row justify-center pointer-events-auto mb-8">
-        <img
-          src="/assets/yuki_logo.png"
-          alt="Yuki"
-          className="h-20 w-auto"
-        />
+      <div className="flex flex-col items-center pointer-events-auto mb-8">
+        <img src="/assets/yuki_logo.png" alt="Yuki" className="h-20 w-auto" />
+        <p className="mt-8 text-sm text-white/90">
+          Click. Collect. Climb. Only the top 50 get in 🔑
+        </p>
       </div>
       <Link to="/leaderboard">
-        <button 
-          className="fixed top-4 right-4 inline-block text-sm group  "
-        >
+        <button className="fixed top-4 right-4 inline-block text-sm group  ">
           <span className="relative z-10 block px-5 py-3 overflow-hidden font-medium leading-tight text-white transition-colors duration-300 ease-out border-2 border-gray-900 rounded-lg group-hover:text-white">
             <span className="absolute inset-0 w-full h-full px-5 py-3 rounded-lg bg-purpleBrand"></span>
             <span className="absolute left-0 w-48 h-48 -ml-2 transition-all duration-300 origin-top-right -rotate-90 -translate-x-full translate-y-12 bg-gray-900 group-hover:-rotate-180 ease"></span>
             <span className="relative flex justify-center items-center">
               <Trophy size={18} className="text-yellow-300 mr-2" />
-              <span className="font-bold text-white">Leadership Board</span>
+              <span className="font-bold text-white">Leaderboard</span>
             </span>
           </span>
           <span
@@ -35,7 +32,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ startGame }) => {
         </button>
       </Link>
 
-      
       {/* <div className="max-w-md bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-2xl mb-8">
         <h2 className="text-2xl font-bold mb-4 text-center">How to Play</h2>
         <ul className="space-y-3">
@@ -65,8 +61,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ startGame }) => {
           </li>
         </ul>
       </div> */}
-      
-      <button 
+
+      <button
         onClick={startGame}
         className="relative inline-block text-lg group"
       >
@@ -82,8 +78,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ startGame }) => {
           data-rounded="rounded-lg"
         ></span>
       </button>
-      
-      <p className="mt-8 text-sm text-white/70">© 2025 Yuki. All rights reserved.</p>
+
+      <p className="mt-8 text-sm text-white/70">
+        © 2025 Yuki. All rights reserved.
+      </p>
     </div>
   );
 };

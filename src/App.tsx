@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Route, Link, useNavigate, Routes } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Route, Routes } from "react-router-dom";
 import LandingPage from "./components/LandingPage";
 import GameScreen from "./components/GameScreen";
 import GameOverScreen from "./components/GameOverScreen";
@@ -21,13 +21,13 @@ function App() {
     playerEmail: null,
     emailVerified: false,
   });
-  const navigate = useNavigate();
   useEffect(() => {
     initAudio();
   }, []);
 
   // Reset game state
   const resetGame = () => {
+    localStorage.setItem("submitted", "false");
     setGameState((prevState) => ({
       ...prevState,
       status: "playing",
@@ -79,7 +79,11 @@ function App() {
   };
 
   // Handle email submission
-  const handleSubmitEmail = async (email: string, name: string) => {
+  const handleSubmitEmail = async (
+    email: string,
+    name: string,
+    scoreId?: string | null
+  ) => {
     setGameState((prevState) => ({
       ...prevState,
       playerEmail: email,
@@ -88,23 +92,25 @@ function App() {
 
     // Simulate sending verification email
     try {
-      const verified = await sendVerificationEmail(
+      const generatedScoreId = await sendVerificationEmail(
         email,
         name,
-        gameState.score
+        gameState.score,
+        scoreId
       );
 
-      if (verified) {
+      if (generatedScoreId) {
         setGameState((prevState) => ({
           ...prevState,
           emailVerified: true,
-          status: "landing",
         }));
-        navigate("/leaderboard");
+
+        return generatedScoreId;
       }
     } catch (error) {
       console.error("Failed to verify email:", error);
     }
+    return null;
   };
 
   // Render based on game state
