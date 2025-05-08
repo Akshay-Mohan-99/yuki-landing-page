@@ -11,9 +11,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ startGame }) => {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-white">
       <div className="flex flex-col items-center pointer-events-auto mb-8">
         <img src="/assets/yuki_logo.png" alt="Yuki" className="h-20 w-auto" />
-        <p className="mt-8 text-sm text-white/90">
+        {/* <p className="mt-8 text-sm text-white/90">
           Click. Collect. Climb. Only the top 50 get in 🔑
-        </p>
+        </p> */}
       </div>
       <Link to="/leaderboard">
         <button className="fixed top-4 right-4 inline-block text-sm group  ">
